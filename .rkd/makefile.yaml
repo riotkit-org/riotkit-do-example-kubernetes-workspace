@@ -1,0 +1,42 @@
+version: org.riotkit.rkd/1.0
+imports:
+    - rkd.standardlib.jinja
+
+environment:
+    KUBECTL_BIN: "kubectl"
+
+arguments: &arguments
+    "--env":
+        help: "Environment name"
+        required: True
+    "app":
+        help: "Application name"
+
+tasks:
+    :k8s:apply:
+        description: "Apply YAML declaration to the Kubernetes"
+        arguments:
+            <<: *arguments
+            "--dry-run":
+                help: "Do not perform changes, only validate"
+                required: False
+                action: "store_true"
+        steps: |
+            OPTS=""
+            [[ $ARG_DRY_RUN == "True" ]] && OPTS="$OPTS --dry-run=client "
+            ${KUBECTL_BIN} apply -f build/.generated-${ARG_ENV}.yml ${OPTS}
+
+
+    :k8s:yaml:
+        description: "Generate a YAML file that can be applied to a cluster"
+        arguments:
+            <<: *arguments
+        steps: |
+            rkd :j2:render -s templates/${ARG_APP}/${ARG_ENV}.yaml.j2 -o build/.generated-${ARG_ENV}.yml
+
+
+    :k8s:delete:
+        description: "Delete an environment"
+        arguments:
+            <<: *arguments
+        steps: ${KUBECTL_BIN} delete -f build/.generated-${ARG_ENV}.yml

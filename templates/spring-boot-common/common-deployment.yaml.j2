@@ -1,0 +1,56 @@
+{%- macro metadata() -%}
+metadata:
+    name: {{ APP_NAME }}
+    namespace: {{ APP_NAMESPACE }}
+    labels:
+        k8s-app: {{ APP_NAME }}
+{%- endmacro -%}
+
+---
+kind: Deployment
+apiVersion: apps/v1
+{{ metadata() }}
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            k8s-app: {{ APP_NAME }}
+    template:
+        metadata:
+            namespace: {{ APP_NAMESPACE }}
+            labels:
+                k8s-app: {{ APP_NAME }}
+        spec:
+            containers:
+                - name: {{ APP_NAME }}
+                  image: {{ APP_DOCKER_IMAGE }}
+
+
+---
+kind: Service
+apiVersion: v1
+{{ metadata() }}
+spec:
+    type: ClusterIP
+    ports:
+        - port: 80
+          protocol: TCP
+          targetPort: 80
+    selector:
+        k8s-app: {{ APP_NAME }}
+
+
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1beta1
+{{ metadata() }}
+spec:
+    rules:
+        - host: {{ APP_URL }}
+          http:
+              paths:
+                  - backend:
+                        serviceName: {{ APP_NAME }}
+                        servicePort: 80
+
+

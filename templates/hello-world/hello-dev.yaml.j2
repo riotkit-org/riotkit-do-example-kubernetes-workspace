@@ -1,0 +1,6 @@
+{%- set APP_NAME = "hello-dev" -%}
+{%- set APP_NAMESPACE = "default" -%}
+{%- set APP_DOCKER_IMAGE = "nginx:1.19" -%}
+{%- set APP_URL = "hello-dev.local" -%}
+
+{% extends "templates/spring-boot-common/common-deployment.yaml.j2" %}
